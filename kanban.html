@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>看板 - 西游记项目</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --priority-high: #ffebee;
+            --priority-high-text: #c62828;
+            --priority-medium: #fff3e0;
+            --priority-medium-text: #ef6c00;
+            --priority-low: #e8f5e9;
+            --priority-low-text: #2e7d32;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 顶部工具栏 */
+        .toolbar {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 12px 20px;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .toolbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            white-space: nowrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            background: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-gradient);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 4px;
+            margin-left: auto;
+        }
+
+        .view-btn {
+            padding: 8px 14px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn.active {
+            background: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .add-task-btn {
+            padding: 10px 20px;
+            background: var(--primary-gradient);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .add-task-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .add-task-btn:active {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+
+        .add-task-btn span {
+            font-size: 1.1rem;
+        }
+
+        .export-btn, .clear-btn {
+            padding: 10px 16px;
+            background: #fff;
+            color: #666;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            min-height: 44px;
+        }
+
+        .export-btn:hover, .clear-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .export-btn:active, .clear-btn:active {
+            transform: scale(0.95);
+        }
+
+        .clear-btn:hover {
+            border-color: #ff5252;
+            color: #ff5252;
+        }
+
+        /* 看板容器 */
+        .board-container {
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            overflow-x: auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            min-height: calc(100vh - 120px);
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* 统计面板 - 右侧固定 */
+        .stats-panel {
+            position: fixed;
+            right: 20px;
+            top: 80px;
+            background: var(--glass-bg);
+            padding: 16px 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 90;
+            min-width: 160px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .stat-divider {
+            width: 100%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        /* 看板列 */
+        .column {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .column-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 2px solid #f0f0f0;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .column-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .column-title::before {
+            font-size: 1.2rem;
+        }
+
+        .column.todo .column-title::before { content: '📝'; }
+        .column.in-progress .column-title::before { content: '🚀'; }
+        .column.done .column-title::before { content: '✅'; }
+
+        .column-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .column-count {
+            background: #e0e0e0;
+            color: #666;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .column-hours {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .collapse-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .collapse-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .column.collapsed .collapse-btn {
+            transform: rotate(-90deg);
+        }
+
+        .column.collapsed .task-list-container {
+            display: none;
+        }
+
+        /* 任务列表容器 - 支持虚拟滚动 */
+        .task-list-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 12px;
+            position: relative;
+        }
+
+        .task-list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .task-list-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .task-list-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 任务卡片 */
+        .task-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: #ddd;
+        }
+
+        .task-card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .task-id {
+            font-size: 0.7rem;
+            color: #999;
+            font-weight: 500;
+            font-family: monospace;
+        }
+
+        .priority-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .priority-high {
+            background: var(--priority-high);
+            color: var(--priority-high-text);
+        }
+
+        .priority-medium {
+            background: var(--priority-medium);
+            color: var(--priority-medium-text);
+        }
+
+        .priority-low {
+            background: var(--priority-low);
+            color: var(--priority-low-text);
+        }
+
+        .task-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid #f5f5f5;
+        }
+
+        .task-hours {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .task-hours::before {
+            content: '⏱️';
+            font-size: 0.9rem;
+        }
+
+        .assignees {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .assignee-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            border: 2px solid #fff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .assignee-more {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        /* 优先级分组视图 */
+        .priority-group {
+            margin-bottom: 16px;
+        }
+
+        .priority-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .priority-group-header:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .priority-group-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .priority-group-count {
+            font-size: 0.75rem;
+            color: #888;
+            background: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .priority-group.collapsed .priority-group-content {
+            display: none;
+        }
+
+        .priority-group.collapsed .priority-group-header::after {
+            transform: rotate(-90deg);
+        }
+
+        .priority-group-header::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: #999;
+            transition: transform 0.2s ease;
+        }
+
+        /* 分页控制 */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #f0f0f0;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* 快速导航 */
+        .quick-nav {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 90;
+        }
+
+        .quick-nav-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: none;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quick-nav-btn:hover {
+            transform: scale(1.1);
+            background: #fff;
+        }
+
+        /* 加载和空状态 */
+        .loading, .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f0f0f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: var(--priority-high);
+            color: var(--priority-high-text);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1600px) {
+            .board {
+                max-width: calc(100% - 200px);
+                margin-right: 180px;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .stats-panel {
+                padding: 12px 16px;
+                min-width: 140px;
+            }
+            
+            .stat-value {
+                font-size: 1.3rem;
+            }
+            
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            
+            .board {
+                max-width: calc(100% - 180px);
+                margin-right: 160px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .stats-panel {
+                right: 10px;
+                top: 70px;
+                padding: 10px 14px;
+                min-width: 120px;
+            }
+            
+            .stat-value {
+                font-size: 1.2rem;
+            }
+            
+            .board {
+                max-width: calc(100% - 150px);
+                margin-right: 130px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .toolbar-content {
+                gap: 12px;
+            }
+
+            .search-box {
+                max-width: none;
+                width: 100%;
+                order: 3;
+            }
+
+            .view-toggle {
+                margin-left: 0;
+            }
+
+            .board {
+                grid-template-columns: 1fr;
+                max-width: 100%;
+                margin-right: 0;
+                min-height: auto;
+            }
+
+            .column {
+                min-height: 400px;
+                max-height: 600px;
+            }
+            
+            .stats-panel {
+                position: fixed;
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%);
+                top: auto;
+                bottom: 80px;
+                flex-direction: row;
+                gap: 24px;
+                min-width: auto;
+                padding: 12px 20px;
+            }
+            
+            .stat-divider {
+                width: 1px;
+                height: 20px;
+            }
+
+            .quick-nav {
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .quick-nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .toolbar {
+                padding: 10px 12px;
+            }
+
+            .logo {
+                font-size: 1rem;
+            }
+
+            .filter-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            .board-container {
+                padding: 10px;
+            }
+
+            .column-header {
+                padding: 12px 14px;
+            }
+
+            .task-list-container {
+                padding: 10px;
+            }
+
+            .task-card {
+                padding: 12px;
+            }
+
+            .task-title {
+                font-size: 0.9rem;
+            }
+
+            .add-task-btn, .export-btn, .clear-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+
+            .export-btn, .clear-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .export-btn, .clear-btn {
+                display: none;
+            }
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .task-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* 拖拽占位符 */
+        .drop-zone {
+            border: 2px dashed #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        /* 性能优化：减少重绘 */
+        .task-list-container {
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 28px;
+            border-bottom: 2px solid #f0f0f0;
+            background: var(--primary-gradient);
+            color: #fff;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 2rem;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-form {
+            padding: 28px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-section {
+            margin: 24px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-section h3 {
+            margin: 0 0 16px 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .participant-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .participant-row input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .participant-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .remove-participant-btn {
+            background: #ff5252;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+            align-self: center;
+        }
+
+        .remove-participant-btn:hover {
+            background: #d32f2f;
+        }
+
+        .add-participant-btn {
+            background: #fff;
+            border: 2px dashed #667eea;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .add-participant-btn:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* 响应式模态框 */
+        @media (max-width: 768px) {
+            .modal {
+                max-width: 100%;
+                margin: 10px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .participant-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .participant-row input:last-of-type {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-header {
+                padding: 16px 20px;
+            }
+
+            .modal-form {
+                padding: 20px;
+            }
+
+            .participant-row {
+                grid-template-columns: 1fr;
+            }
+
+            .remove-participant-btn {
+                width: 100%;
+            }
+        }
+
+        /* iOS Safari 特定修复 */
+        @supports (-webkit-touch-callout: none) {
+            .board-container {
+                height: calc(var(--vh, 1vh) * 100 - 70px);
+            }
+            
+            .modal {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .modal-overlay {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .task-list-container {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+            
+            .add-task-btn {
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .filter-btn, .view-btn, .collapse-btn {
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .task-card {
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+
+        body.ios-keyboard-open {
+            position: fixed;
+            width: 100%;
+        }
+
+        /* Toast 提示动画 */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        .success-toast {
+            -webkit-tap-highlight-color: transparent;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部工具栏 -->
+    <div class="toolbar">
+        <div class="toolbar-content">
+            <div class="logo">📋 西游记看板</div>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索任务标题、ID或负责人..." autocomplete="off">
+            </div>
+
+            <div class="filter-group">
+                <button class="filter-btn active" data-priority="all">全部</button>
+                <button class="filter-btn" data-priority="高">高优先级</button>
+                <button class="filter-btn" data-priority="中">中优先级</button>
+                <button class="filter-btn" data-priority="低">低优先级</button>
+            </div>
+
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="list">列表</button>
+                <button class="view-btn" data-view="group">分组</button>
+            </div>
+
+            <button class="add-task-btn" id="addTaskBtn" title="添加新任务">
+                <span>➕</span> 添加任务
+            </button>
+
+            <button class="export-btn" onclick="exportTasks()" title="导出任务数据">
+                <span>📤</span> 导出
+            </button>
+
+            <button class="clear-btn" onclick="clearSessionData()" title="清空会话数据">
+                <span>🗑️</span> 清空
+            </button>
+        </div>
+    </div>
+
+    <!-- 统计面板 -->
+    <div class="stats-panel" id="statsPanel">
+        <div class="stat-item">
+            <div class="stat-value" id="totalTasks">0</div>
+            <div class="stat-label">总任务</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-value" id="totalHours">0</div>
+            <div class="stat-label">总工时(天)</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-value" id="completionRate">0%</div>
+            <div class="stat-label">完成率</div>
+        </div>
+    </div>
+
+    <!-- 看板容器 -->
+    <div class="board-container">
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <div>加载任务数据...</div>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div class="board" id="board" style="display: none;">
+            <!-- 待办列 -->
+            <div class="column todo" data-status="待办">
+                <div class="column-header">
+                    <span class="column-title">待办</span>
+                    <div class="column-stats">
+                        <span class="column-hours" id="todo-hours">0天</span>
+                        <span class="column-count" id="todo-count">0</span>
+                        <button class="collapse-btn" title="折叠/展开">▼</button>
+                    </div>
+                </div>
+                <div class="task-list-container" id="todo-container">
+                    <div class="task-list" id="todo-list"></div>
+                </div>
+                <div class="pagination" id="todo-pagination" style="display: none;"></div>
+            </div>
+
+            <!-- 进行中列 -->
+            <div class="column in-progress" data-status="进行中">
+                <div class="column-header">
+                    <span class="column-title">进行中</span>
+                    <div class="column-stats">
+                        <span class="column-hours" id="progress-hours">0天</span>
+                        <span class="column-count" id="progress-count">0</span>
+                        <button class="collapse-btn" title="折叠/展开">▼</button>
+                    </div>
+                </div>
+                <div class="task-list-container" id="progress-container">
+                    <div class="task-list" id="progress-list"></div>
+                </div>
+                <div class="pagination" id="progress-pagination" style="display: none;"></div>
+            </div>
+
+            <!-- 已完成列 -->
+            <div class="column done" data-status="已完成">
+                <div class="column-header">
+                    <span class="column-title">已完成</span>
+                    <div class="column-stats">
+                        <span class="column-hours" id="done-hours">0天</span>
+                        <span class="column-count" id="done-count">0</span>
+                        <button class="collapse-btn" title="折叠/展开">▼</button>
+                    </div>
+                </div>
+                <div class="task-list-container" id="done-container">
+                    <div class="task-list" id="done-list"></div>
+                </div>
+                <div class="pagination" id="done-pagination" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速导航 -->
+    <div class="quick-nav" id="quickNav" style="display: none;">
+        <button class="quick-nav-btn" onclick="scrollToColumn('todo')" title="待办">📝</button>
+        <button class="quick-nav-btn" onclick="scrollToColumn('progress')" title="进行中">🚀</button>
+        <button class="quick-nav-btn" onclick="scrollToColumn('done')" title="已完成">✅</button>
+        <button class="quick-nav-btn" onclick="scrollToTop()" title="回到顶部">⬆️</button>
+    </div>
+
+    <!-- 添加任务模态框 -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>添加新任务</h2>
+                <button class="modal-close" onclick="closeModal()" title="关闭">×</button>
+            </div>
+            <form id="taskForm" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskId">任务ID *</label>
+                        <input type="text" id="taskId" name="taskId" required placeholder="例如: XY-026">
+                    </div>
+                    <div class="form-group">
+                        <label for="taskTitle">任务标题 *</label>
+                        <input type="text" id="taskTitle" name="taskTitle" required placeholder="请输入任务标题">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskStatus">状态</label>
+                        <select id="taskStatus" name="taskStatus">
+                            <option value="待办">待办</option>
+                            <option value="进行中">进行中</option>
+                            <option value="已完成">已完成</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskPriority">优先级</label>
+                        <select id="taskPriority" name="taskPriority">
+                            <option value="高">高</option>
+                            <option value="中" selected>中</option>
+                            <option value="低">低</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="iterationName">迭代名称</label>
+                    <input type="text" id="iterationName" name="iterationName" value="iteration-1" placeholder="例如: iteration-1">
+                </div>
+
+                <div class="form-section">
+                    <h3>参与人员</h3>
+                    <div id="participantsContainer">
+                        <div class="participant-row">
+                            <input type="text" placeholder="姓名" class="participant-name">
+                            <input type="text" placeholder="角色" class="participant-role">
+                            <input type="number" placeholder="预估天数" class="participant-days" step="0.5" min="0">
+                            <button type="button" class="remove-participant-btn" onclick="removeParticipant(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-participant-btn" onclick="addParticipant()">+ 添加参与人员</button>
+                </div>
+
+                <div class="form-section">
+                    <h3>审核人员</h3>
+                    <div id="reviewersContainer">
+                        <div class="participant-row">
+                            <input type="text" placeholder="姓名" class="reviewer-name">
+                            <input type="text" placeholder="角色" class="reviewer-role">
+                            <input type="number" placeholder="预估天数" class="reviewer-days" step="0.5" min="0">
+                            <button type="button" class="remove-participant-btn" onclick="removeReviewer(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-participant-btn" onclick="addReviewer()">+ 添加审核人员</button>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn-primary">添加任务</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 全局状态管理
+        const state = {
+            allTasks: [],
+            filteredTasks: [],
+            currentView: 'list', // 'list' 或 'group'
+            currentFilter: 'all',
+            searchQuery: '',
+            pagination: {
+                todo: { page: 1, pageSize: 50 },
+                progress: { page: 1, pageSize: 50 },
+                done: { page: 1, pageSize: 50 }
+            },
+            collapsedGroups: new Set()
+        };
+
+        // 常量定义
+        const ITEMS_PER_PAGE = 50;
+        const MAX_ITEMS_WITHOUT_PAGINATION = 30;
+
+        // 计算总工时
+        function calculateTotalHours(task) {
+            let total = 0;
+            if (task.participants) {
+                total += task.participants.reduce((sum, p) => sum + (p.estimated_days || 0), 0);
+            }
+            if (task.reviewers) {
+                total += task.reviewers.reduce((sum, r) => sum + (r.estimated_days || 0), 0);
+            }
+            return total;
+        }
+
+        // 获取负责人姓名列表
+        function getAssigneeNames(task) {
+            const names = [];
+            if (task.participants) {
+                task.participants.forEach(p => names.push(p.name));
+            }
+            if (task.reviewers) {
+                task.reviewers.forEach(r => names.push(r.name));
+            }
+            return [...new Set(names)];
+        }
+
+        // 获取负责人头像（取名字首字）
+        function getInitials(name) {
+            return name ? name.charAt(0) : '?';
+        }
+
+        // 获取优先级样式
+        function getPriorityClass(priority) {
+            const map = {
+                '高': 'priority-high',
+                '中': 'priority-medium',
+                '低': 'priority-low'
+            };
+            return map[priority] || 'priority-low';
+        }
+
+        // 创建任务卡片HTML
+        function createTaskCard(task) {
+            const priorityClass = getPriorityClass(task.priority);
+            const totalHours = calculateTotalHours(task);
+            const assignees = getAssigneeNames(task);
+            
+            let assigneesHtml = '';
+            if (assignees.length > 0) {
+                const maxDisplay = 3;
+                const displayAssignees = assignees.slice(0, maxDisplay);
+                displayAssignees.forEach(name => {
+                    assigneesHtml += `<div class="assignee-avatar" title="${name}">${getInitials(name)}</div>`;
+                });
+                if (assignees.length > maxDisplay) {
+                    assigneesHtml += `<div class="assignee-more" title="还有 ${assignees.length - maxDisplay} 人">+${assignees.length - maxDisplay}</div>`;
+                }
+            }
+            
+            return `
+                <div class="task-card" data-task-id="${task.task_id}" draggable="true">
+                    <div class="task-header">
+                        <span class="task-id">${task.task_id}</span>
+                        <span class="priority-badge ${priorityClass}">${task.priority}</span>
+                    </div>
+                    <div class="task-title" title="${task.title}">${task.title}</div>
+                    <div class="task-footer">
+                        <div class="task-hours">${totalHours}天</div>
+                        <div class="assignees">
+                            ${assigneesHtml || '<span style="color: #ccc; font-size: 0.75rem;">未分配</span>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 筛选任务
+        function filterTasks() {
+            console.log('🔍 filterTasks 被调用');
+            console.log('📊 state.allTasks 长度:', state.allTasks.length);
+            let tasks = state.allTasks;
+            
+            // 搜索筛选
+            if (state.searchQuery) {
+                const query = state.searchQuery.toLowerCase();
+                tasks = tasks.filter(task => {
+                    const titleMatch = task.title.toLowerCase().includes(query);
+                    const idMatch = task.task_id.toLowerCase().includes(query);
+                    const assigneeMatch = getAssigneeNames(task).some(name => 
+                        name.toLowerCase().includes(query)
+                    );
+                    return titleMatch || idMatch || assigneeMatch;
+                });
+                console.log('🔍 搜索筛选后任务数:', tasks.length);
+            }
+            
+            // 优先级筛选
+            if (state.currentFilter !== 'all') {
+                tasks = tasks.filter(task => task.priority === state.currentFilter);
+                console.log('🎯 优先级筛选后任务数:', tasks.length);
+            }
+            
+            state.filteredTasks = tasks;
+            console.log('✅ 筛选完成，返回任务数:', tasks.length);
+            return tasks;
+        }
+
+        // 按状态分组
+        function groupByStatus(tasks) {
+            const groups = {
+                '待办': [],
+                '进行中': [],
+                '已完成': []
+            };
+            
+            tasks.forEach(task => {
+                if (groups[task.status]) {
+                    groups[task.status].push(task);
+                }
+            });
+            
+            return groups;
+        }
+
+        // 按优先级分组
+        function groupByPriority(tasks) {
+            const groups = {
+                '高': [],
+                '中': [],
+                '低': []
+            };
+            
+            tasks.forEach(task => {
+                if (groups[task.priority]) {
+                    groups[task.priority].push(task);
+                }
+            });
+            
+            return groups;
+        }
+
+        // 渲染任务列表
+        function renderTaskList(containerId, tasks, status) {
+            console.log(`🎯 渲染任务列表: ${containerId}, 状态: ${status}, 任务数: ${tasks.length}`);
+            const container = document.getElementById(containerId);
+            
+            if (!container) {
+                console.error(`❌ 未找到容器: ${containerId}`);
+                return;
+            }
+            
+            const paginationContainer = document.getElementById(status.replace('待办', 'todo').replace('进行中', 'progress').replace('已完成', 'done') + '-pagination');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem; margin-bottom: 12px;">📭</div>
+                        <div>暂无任务</div>
+                    </div>
+                `;
+                if (paginationContainer) paginationContainer.style.display = 'none';
+                return;
+            }
+            
+            // 判断是否使用分页
+            const usePagination = tasks.length > MAX_ITEMS_WITHOUT_PAGINATION;
+            let displayTasks = tasks;
+            
+            if (usePagination) {
+                const paginationKey = status.replace('待办', 'todo').replace('进行中', 'progress').replace('已完成', 'done');
+                const { page, pageSize } = state.pagination[paginationKey];
+                const start = (page - 1) * pageSize;
+                const end = start + pageSize;
+                displayTasks = tasks.slice(start, end);
+                
+                // 渲染分页控件
+                renderPagination(paginationContainer, tasks.length, page, pageSize, paginationKey);
+            } else {
+                if (paginationContainer) paginationContainer.style.display = 'none';
+            }
+            
+            // 渲染任务卡片
+            const cardsHtml = displayTasks.map(task => createTaskCard(task)).join('');
+            container.innerHTML = `<div class="task-list">${cardsHtml}</div>`;
+            console.log(`✅ 任务列表渲染完成: ${containerId}`);
+        }
+
+        // 渲染优先级分组视图
+        function renderGroupedView(containerId, tasks) {
+            const container = document.getElementById(containerId);
+            const priorityGroups = groupByPriority(tasks);
+            
+            let html = '';
+            const priorityOrder = ['高', '中', '低'];
+            const priorityLabels = { '高': '🔴 高优先级', '中': '🟡 中优先级', '低': '🟢 低优先级' };
+            
+            priorityOrder.forEach(priority => {
+                const groupTasks = priorityGroups[priority] || [];
+                const isCollapsed = state.collapsedGroups.has(priority);
+                
+                html += `
+                    <div class="priority-group ${isCollapsed ? 'collapsed' : ''}" data-priority="${priority}">
+                        <div class="priority-group-header" onclick="toggleGroup('${priority}')">
+                            <span class="priority-group-title">${priorityLabels[priority]}</span>
+                            <span class="priority-group-count">${groupTasks.length}</span>
+                        </div>
+                        <div class="priority-group-content">
+                            ${groupTasks.length > 0 
+                                ? groupTasks.map(task => createTaskCard(task)).join('') 
+                                : '<div style="padding: 20px; text-align: center; color: #999;">该优先级暂无任务</div>'
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 渲染分页控件
+        function renderPagination(container, totalItems, currentPage, pageSize, key) {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            
+            if (totalPages <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            container.innerHTML = `
+                <button class="pagination-btn" onclick="changePage('${key}', ${currentPage - 1})" 
+                    ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+                <span class="pagination-info">${currentPage} / ${totalPages}</span>
+                <button class="pagination-btn" onclick="changePage('${key}', ${currentPage + 1})" 
+                    ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+            `;
+        }
+
+        // 切换页面
+        function changePage(key, page) {
+            state.pagination[key].page = page;
+            renderBoard();
+        }
+
+        // 切换分组折叠状态
+        function toggleGroup(priority) {
+            if (state.collapsedGroups.has(priority)) {
+                state.collapsedGroups.delete(priority);
+            } else {
+                state.collapsedGroups.add(priority);
+            }
+            renderBoard();
+        }
+
+        // 渲染整个看板
+        function renderBoard() {
+            console.log('🔄 renderBoard 被调用');
+            const tasks = filterTasks();
+            console.log('📊 筛选后任务数:', tasks.length);
+            const groups = groupByStatus(tasks);
+            console.log('📋 各状态任务数:', {
+                '待办': groups['待办'].length,
+                '进行中': groups['进行中'].length,
+                '已完成': groups['已完成'].length
+            });
+            
+            // 更新统计
+            updateStats(groups);
+            
+            // 渲染各列
+            if (state.currentView === 'group') {
+                renderGroupedView('todo-list', groups['待办']);
+                renderGroupedView('progress-list', groups['进行中']);
+                renderGroupedView('done-list', groups['已完成']);
+                document.getElementById('todo-pagination').style.display = 'none';
+                document.getElementById('progress-pagination').style.display = 'none';
+                document.getElementById('done-pagination').style.display = 'none';
+            } else {
+                renderTaskList('todo-list', groups['待办'], '待办');
+                renderTaskList('progress-list', groups['进行中'], '进行中');
+                renderTaskList('done-list', groups['已完成'], '已完成');
+            }
+            console.log('✅ 看板渲染完成');
+        }
+
+        // 更新统计信息
+        function updateStats(groups) {
+            const todoCount = groups['待办'].length;
+            const progressCount = groups['进行中'].length;
+            const doneCount = groups['已完成'].length;
+            const totalCount = todoCount + progressCount + doneCount;
+            
+            const todoHours = groups['待办'].reduce((sum, t) => sum + calculateTotalHours(t), 0);
+            const progressHours = groups['进行中'].reduce((sum, t) => sum + calculateTotalHours(t), 0);
+            const doneHours = groups['已完成'].reduce((sum, t) => sum + calculateTotalHours(t), 0);
+            const totalHours = todoHours + progressHours + doneHours;
+            
+            const completionRate = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+            
+            // 更新列统计
+            document.getElementById('todo-count').textContent = todoCount;
+            document.getElementById('todo-hours').textContent = todoHours.toFixed(1) + '天';
+            document.getElementById('progress-count').textContent = progressCount;
+            document.getElementById('progress-hours').textContent = progressHours.toFixed(1) + '天';
+            document.getElementById('done-count').textContent = doneCount;
+            document.getElementById('done-hours').textContent = doneHours.toFixed(1) + '天';
+            
+            // 更新全局统计面板
+            document.getElementById('totalTasks').textContent = totalCount;
+            document.getElementById('totalHours').textContent = totalHours.toFixed(1);
+            document.getElementById('completionRate').textContent = completionRate + '%';
+        }
+
+        // 初始化事件监听
+        function initEventListeners() {
+            // 搜索输入
+            const searchInput = document.getElementById('searchInput');
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    state.searchQuery = e.target.value.trim();
+                    // 重置分页
+                    Object.keys(state.pagination).forEach(key => {
+                        state.pagination[key].page = 1;
+                    });
+                    renderBoard();
+                }, 300);
+            });
+            
+            // 优先级筛选
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.currentFilter = btn.dataset.priority;
+                    // 重置分页
+                    Object.keys(state.pagination).forEach(key => {
+                        state.pagination[key].page = 1;
+                    });
+                    renderBoard();
+                });
+            });
+            
+            // 视图切换
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.currentView = btn.dataset.view;
+                    renderBoard();
+                });
+            });
+            
+            // 列折叠按钮
+            document.querySelectorAll('.collapse-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const column = btn.closest('.column');
+                    column.classList.toggle('collapsed');
+                });
+            });
+
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            if (addTaskBtn) {
+                console.log('✅ 添加任务按钮已找到');
+                
+                addTaskBtn.addEventListener('click', function(e) {
+                    console.log('🖱️ Click 事件触发');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openModal();
+                });
+                
+                addTaskBtn.addEventListener('touchend', function(e) {
+                    console.log('👆 Touch 事件触发');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openModal();
+                }, { passive: false });
+                
+                addTaskBtn.addEventListener('touchstart', function(e) {
+                    this.style.opacity = '0.8';
+                }, { passive: true });
+                
+                addTaskBtn.addEventListener('touchcancel', function(e) {
+                    this.style.opacity = '1';
+                }, { passive: true });
+            } else {
+                console.error('❌ 未找到添加任务按钮');
+            }
+
+            const taskForm = document.getElementById('taskForm');
+            if (taskForm) {
+                taskForm.addEventListener('submit', handleTaskSubmit);
+            }
+
+            const taskModal = document.getElementById('taskModal');
+            if (taskModal) {
+                taskModal.addEventListener('click', function(e) {
+                    if (e.target === taskModal) {
+                        closeModal();
+                    }
+                });
+            }
+        }
+
+        function openModal() {
+            console.log('🚀 打开模态框');
+            const modal = document.getElementById('taskModal');
+            if (modal) {
+                console.log('✅ 模态框元素已找到');
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+                
+                const firstInput = document.getElementById('taskId');
+                if (firstInput) {
+                    setTimeout(() => {
+                        firstInput.focus();
+                        console.log('✅ 输入框已聚焦');
+                    }, 100);
+                }
+            } else {
+                console.error('❌ 未找到模态框元素');
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('taskModal');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                
+                const taskForm = document.getElementById('taskForm');
+                if (taskForm) {
+                    taskForm.reset();
+                }
+                const participantsContainer = document.getElementById('participantsContainer');
+                if (participantsContainer) {
+                    participantsContainer.innerHTML = `
+                        <div class="participant-row">
+                            <input type="text" placeholder="姓名" class="participant-name">
+                            <input type="text" placeholder="角色" class="participant-role">
+                            <input type="number" placeholder="预估天数" class="participant-days" step="0.5" min="0">
+                            <button type="button" class="remove-participant-btn" onclick="removeParticipant(this)">×</button>
+                        </div>
+                    `;
+                }
+                const reviewersContainer = document.getElementById('reviewersContainer');
+                if (reviewersContainer) {
+                    reviewersContainer.innerHTML = `
+                        <div class="participant-row">
+                            <input type="text" placeholder="姓名" class="reviewer-name">
+                            <input type="text" placeholder="角色" class="reviewer-role">
+                            <input type="number" placeholder="预估天数" class="reviewer-days" step="0.5" min="0">
+                            <button type="button" class="remove-participant-btn" onclick="removeReviewer(this)">×</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function addParticipant() {
+            const container = document.getElementById('participantsContainer');
+            if (!container) return;
+            
+            const row = document.createElement('div');
+            row.className = 'participant-row';
+            row.innerHTML = `
+                <input type="text" placeholder="姓名" class="participant-name">
+                <input type="text" placeholder="角色" class="participant-role">
+                <input type="number" placeholder="预估天数" class="participant-days" step="0.5" min="0">
+                <button type="button" class="remove-participant-btn" onclick="removeParticipant(this)">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeParticipant(btn) {
+            if (!btn) return;
+            const container = document.getElementById('participantsContainer');
+            if (container && container.children.length > 1) {
+                btn.parentElement.remove();
+            }
+        }
+
+        function addReviewer() {
+            const container = document.getElementById('reviewersContainer');
+            if (!container) return;
+            
+            const row = document.createElement('div');
+            row.className = 'participant-row';
+            row.innerHTML = `
+                <input type="text" placeholder="姓名" class="reviewer-name">
+                <input type="text" placeholder="角色" class="reviewer-role">
+                <input type="number" placeholder="预估天数" class="reviewer-days" step="0.5" min="0">
+                <button type="button" class="remove-participant-btn" onclick="removeReviewer(this)">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeReviewer(btn) {
+            if (!btn) return;
+            const container = document.getElementById('reviewersContainer');
+            if (container && container.children.length > 1) {
+                btn.parentElement.remove();
+            }
+        }
+
+        function handleTaskSubmit(e) {
+            e.preventDefault();
+            
+            const taskId = document.getElementById('taskId').value.trim();
+            const taskTitle = document.getElementById('taskTitle').value.trim();
+            const taskStatus = document.getElementById('taskStatus').value;
+            const taskPriority = document.getElementById('taskPriority').value;
+            const iterationName = document.getElementById('iterationName').value.trim() || 'iteration-1';
+
+            if (!taskId || !taskTitle) {
+                alert('请填写任务ID和标题');
+                return;
+            }
+
+            if (state.allTasks.some(t => t.task_id === taskId)) {
+                alert('任务ID已存在，请使用不同的ID');
+                return;
+            }
+
+            const participants = [];
+            const participantRows = document.querySelectorAll('#participantsContainer .participant-row');
+            participantRows.forEach(row => {
+                const name = row.querySelector('.participant-name').value.trim();
+                const role = row.querySelector('.participant-role').value.trim();
+                const days = parseFloat(row.querySelector('.participant-days').value) || 0;
+                if (name) {
+                    participants.push({
+                        name: name,
+                        role: role || '未分配',
+                        estimated_days: days,
+                        actual_days: 0
+                    });
+                }
+            });
+
+            const reviewers = [];
+            const reviewerRows = document.querySelectorAll('#reviewersContainer .participant-row');
+            reviewerRows.forEach(row => {
+                const name = row.querySelector('.reviewer-name').value.trim();
+                const role = row.querySelector('.reviewer-role').value.trim();
+                const days = parseFloat(row.querySelector('.reviewer-days').value) || 0;
+                if (name) {
+                    reviewers.push({
+                        name: name,
+                        role: role || '未分配',
+                        estimated_days: days,
+                        actual_days: 0
+                    });
+                }
+            });
+
+            const newTask = {
+                task_id: taskId,
+                title: taskTitle,
+                status: taskStatus,
+                priority: taskPriority,
+                iteration_name: iterationName,
+                participants: participants,
+                reviewers: reviewers
+            };
+
+            console.log('📝 新任务:', newTask);
+            state.allTasks.push(newTask);
+            console.log('✅ 任务已添加到内存，当前任务数:', state.allTasks.length);
+            
+            // 保存到 LocalStorage
+            const saved = saveTasks();
+            if (!saved) {
+                console.warn('⚠️ 任务保存失败，但任务已在内存中');
+            }
+            
+            // 如果当前有优先级筛选，重置为全部
+            let filterReset = false;
+            if (state.currentFilter !== 'all') {
+                state.currentFilter = 'all';
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.priority === 'all');
+                });
+                filterReset = true;
+                console.log('🔄 已重置筛选为"全部"');
+            }
+            
+            // 更新筛选后的任务列表
+            state.filteredTasks = [...state.allTasks];
+            
+            // 重置分页到第一页，确保新任务可见
+            Object.keys(state.pagination).forEach(key => {
+                state.pagination[key].page = 1;
+            });
+            
+            renderBoard();
+            closeModal();
+            
+            // 显示成功消息
+            const message = filterReset 
+                ? `任务添加成功！已自动切换到"全部"视图` 
+                : '任务添加成功！数据将在关闭标签页后清除';
+            showSuccessMessage(message);
+        }
+
+        function showSuccessMessage(message) {
+            const toast = document.createElement('div');
+            toast.className = 'success-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #4caf50;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                z-index: 2000;
+                animation: slideDown 0.3s ease-out;
+                max-width: 90%;
+                text-align: center;
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        async function loadTasks() {
+            try {
+                // 优先从 SessionStorage 加载
+                const savedTasks = sessionStorage.getItem('kanban_tasks');
+                if (savedTasks) {
+                    const data = JSON.parse(savedTasks);
+                    state.allTasks = data.tasks || [];
+                    state.filteredTasks = [...state.allTasks];
+                    console.log('✅ 已从 SessionStorage 加载任务数据，共', state.allTasks.length, '个任务');
+                    return state.allTasks;
+                }
+                
+                // 如果 SessionStorage 没有数据，从服务器加载
+                const response = await fetch('data/projects/xiyouji/tasks.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                state.allTasks = data.tasks || [];
+                state.filteredTasks = [...state.allTasks];
+                console.log('✅ 已从服务器加载原始任务数据，共', state.allTasks.length, '个任务');
+                
+                // 保存到 SessionStorage 以便后续使用
+                sessionStorage.setItem('kanban_tasks', JSON.stringify({ tasks: state.allTasks }));
+                
+                return state.allTasks;
+            } catch (error) {
+                console.error('加载任务失败:', error);
+                throw new Error('无法加载任务数据，请检查文件路径是否正确');
+            }
+        }
+
+        function saveTasks() {
+            try {
+                const tasksData = { tasks: state.allTasks };
+                sessionStorage.setItem('kanban_tasks', JSON.stringify(tasksData));
+                console.log('✅ 任务已保存到 SessionStorage，共', state.allTasks.length, '个任务');
+                return true;
+            } catch (error) {
+                console.error('保存任务失败:', error);
+                return false;
+            }
+        }
+
+        function clearSessionData() {
+            if (confirm('确定要清空所有会话数据吗？此操作不可恢复！')) {
+                sessionStorage.removeItem('kanban_tasks');
+                console.log('🗑️ SessionStorage 已清空');
+                location.reload();
+            }
+        }
+
+        function exportTasks() {
+            try {
+                const tasksData = { tasks: state.allTasks };
+                const dataStr = JSON.stringify(tasksData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'tasks.json';
+                link.click();
+                URL.revokeObjectURL(url);
+                console.log('📤 任务数据已导出');
+                showSuccessMessage('任务数据已导出为 tasks.json');
+            } catch (error) {
+                console.error('导出失败:', error);
+                alert('导出失败: ' + error.message);
+            }
+        }
+
+        // 快速导航
+        function scrollToColumn(type) {
+            const map = { 'todo': 0, 'progress': 1, 'done': 2 };
+            const index = map[type];
+            const columns = document.querySelectorAll('.column');
+            if (columns[index]) {
+                columns[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 初始化
+        async function init() {
+            try {
+                await loadTasks();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('board').style.display = 'grid';
+                document.getElementById('quickNav').style.display = 'flex';
+                
+                initEventListeners();
+                renderBoard();
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = error.message;
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+
+        /* 响应式处理 */
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth <= 1024 && state.currentView === 'group') {
+                    state.currentView = 'list';
+                    document.querySelectorAll('.view-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.view === 'list');
+                    });
+                    renderBoard();
+                }
+            }, 250);
+        });
+
+        // iOS Safari 特定修复
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            document.addEventListener('touchmove', function(e) {
+                const modal = document.getElementById('taskModal');
+                if (modal && modal.classList.contains('active')) {
+                    if (e.target.closest('.modal')) {
+                        return;
+                    }
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            // 修复 iOS 100vh 问题
+            const setVH = () => {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            };
+            setVH();
+            window.addEventListener('resize', setVH);
+        }
+    </script>
+</body>
+</html>

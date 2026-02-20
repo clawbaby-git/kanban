@@ -1,0 +1,20 @@
+{
+  "name": "kanban-board",
+  "version": "0.4.0",
+  "description": "现代化任务管理看板应用",
+  "main": "kanban.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8889",
+    "deploy": "npm run build && npm run push",
+    "build": "echo 'Build completed successfully'",
+    "push": "git add . && git commit -m \"deploy: 部署 v${npm_package_version}\" && git push origin main"
+  },
+  "keywords": [
+    "kanban",
+    "task-management",
+    "responsive",
+    "github-pages"
+  ],
+  "author": "",
+  "license": "MIT"
+}

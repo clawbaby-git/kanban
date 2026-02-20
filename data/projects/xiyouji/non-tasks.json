@@ -1,0 +1,40 @@
+{
+  "non_tasks": [
+    {
+      "date": "2024-01-02",
+      "user": "唐僧",
+      "role": "策划",
+      "type": "会议",
+      "content": "取经路线规划会议",
+      "estimated_days": 0.5,
+      "actual_days": 0.5
+    },
+    {
+      "date": "2024-01-03",
+      "user": "孙悟空",
+      "role": "服务端",
+      "type": "学习",
+      "content": "筋斗云性能优化技术分享",
+      "estimated_days": 0.5,
+      "actual_days": 0.5
+    },
+    {
+      "date": "2024-01-04",
+      "user": "猪八戒",
+      "role": "客户端",
+      "type": "其他",
+      "content": "高老庄探亲（个人事务）",
+      "estimated_days": 1.0,
+      "actual_days": 1.0
+    },
+    {
+      "date": "2024-01-05",
+      "user": "观音菩萨",
+      "role": "策划",
+      "type": "会议",
+      "content": "月度项目复盘会",
+      "estimated_days": 0.5,
+      "actual_days": 0.5
+    }
+  ]
+}
