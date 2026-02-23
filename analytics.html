@@ -164,8 +164,8 @@
 
             try {
                 const [configRes, tasksRes] = await Promise.all([
-                    fetch('config.json'),
-                    fetch('tasks.json')
+                    fetch('data/projects/xiyouji/config.json'),
+                    fetch('data/projects/xiyouji/tasks.json')
                 ]);
 
                 if (!configRes.ok || !tasksRes.ok) {
