@@ -125,12 +125,35 @@
             border-color: transparent;
         }
 
+        .heatmap-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--primary-gradient);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-left: auto;
+        }
+
+        .heatmap-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .heatmap-link::before {
+            content: '🔥';
+        }
+
         .view-toggle {
             display: flex;
             background: #f0f0f0;
             border-radius: 8px;
             padding: 4px;
-            margin-left: auto;
         }
 
         .view-btn {
@@ -233,21 +256,39 @@
             margin: 0 auto;
         }
 
-        /* 统计面板 - 右侧固定 */
+        /* 统计面板 - 右侧固定，可拖动 */
         .stats-panel {
             position: fixed;
             right: 20px;
             top: 80px;
             background: var(--glass-bg);
-            padding: 16px 20px;
+            padding: 12px 16px;
             border-radius: 16px;
             box-shadow: var(--shadow-lg);
             backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             gap: 16px;
-            z-index: 90;
+            z-index: 150;
+            cursor: move;
             min-width: 160px;
+            will-change: transform;
+            touch-action: none;
+        }
+
+        .stats-drag-handle {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: move;
+            user-select: none;
+        }
+
+        .stats-drag-handle:hover {
+            color: #667eea;
         }
 
         .stat-item {
@@ -460,6 +501,7 @@
             align-items: center;
             padding-top: 8px;
             border-top: 1px solid #f5f5f5;
+            gap: 8px;
         }
 
         .task-hours {
@@ -479,6 +521,35 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            flex: 1;
+        }
+
+        .task-detail-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            opacity: 0.6;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            min-width: 32px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-detail-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .task-detail-btn:active {
+            transform: scale(0.95);
         }
 
         .assignee-avatar {
@@ -809,6 +880,235 @@
             .export-btn, .clear-btn {
                 display: none;
             }
+        }
+
+        /* 详情模态框样式 */
+        .detail-modal {
+            max-width: 600px;
+        }
+
+        .detail-content {
+            padding: 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .detail-status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-todo {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-progress {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-done {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .detail-person-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-person-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .detail-person-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .detail-person-info {
+            flex: 1;
+        }
+
+        .detail-person-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-person-role {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .detail-person-days {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        /* 任务描述样式 */
+        .detail-description {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            line-height: 1.6;
+        }
+
+        .detail-description h1,
+        .detail-description h2,
+        .detail-description h3 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .detail-description h1 {
+            font-size: 1.3rem;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .detail-description h2 {
+            font-size: 1.1rem;
+        }
+
+        .detail-description h3 {
+            font-size: 1rem;
+        }
+
+        .detail-description p {
+            margin: 8px 0;
+        }
+
+        .detail-description ul,
+        .detail-description ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+
+        .detail-description li {
+            margin: 4px 0;
+        }
+
+        .detail-description code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .detail-description pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        .detail-description pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .detail-description blockquote {
+            border-left: 4px solid #667eea;
+            margin: 12px 0;
+            padding-left: 16px;
+            color: #666;
+        }
+
+        .detail-description a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .detail-description a:hover {
+            text-decoration: underline;
+        }
+
+        .detail-description hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 16px 0;
+        }
+
+        .detail-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .detail-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .detail-meta-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .detail-meta-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-meta-value {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 600;
         }
 
         /* 动画 */
@@ -1199,6 +1499,10 @@
                 <button class="filter-btn" data-priority="低">低优先级</button>
             </div>
 
+            <a href="heatmap.html" class="heatmap-link" title="查看人员负荷热力图">
+                人员负荷
+            </a>
+
             <div class="view-toggle">
                 <button class="view-btn active" data-view="list">列表</button>
                 <button class="view-btn" data-view="group">分组</button>
@@ -1220,6 +1524,7 @@
 
     <!-- 统计面板 -->
     <div class="stats-panel" id="statsPanel">
+        <div class="stats-drag-handle" id="statsDragHandle">📊 统计</div>
         <div class="stat-item">
             <div class="stat-value" id="totalTasks">0</div>
             <div class="stat-label">总任务</div>
@@ -1381,6 +1686,19 @@
         </div>
     </div>
 
+    <!-- 任务详情模态框 -->
+    <div class="modal-overlay" id="taskDetailModal">
+        <div class="modal detail-modal">
+            <div class="modal-header">
+                <h2 id="detailTaskTitle">任务详情</h2>
+                <button class="modal-close" onclick="closeTaskDetail()" title="关闭">×</button>
+            </div>
+            <div class="detail-content" id="detailContent">
+                <!-- 动态填充任务详情 -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // 全局状态管理
         const state = {
@@ -1440,6 +1758,53 @@
             return map[priority] || 'priority-low';
         }
 
+        // 简单的 Markdown 渲染函数
+        function renderMarkdown(text) {
+            if (!text) return '';
+            
+            // 转义 HTML
+            let html = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            
+            // 标题
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            
+            // 粗体和斜体
+            html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // 代码块
+            html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            // 链接
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            
+            // 引用
+            html = html.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+            
+            // 水平线
+            html = html.replace(/^---$/gim, '<hr>');
+            
+            // 列表
+            html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            // 段落
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+            
+            // 清理空段落
+            html = html.replace(/<p>\s*<\/p>/g, '');
+            
+            return html;
+        }
+
         // 创建任务卡片HTML
         function createTaskCard(task) {
             const priorityClass = getPriorityClass(task.priority);
@@ -1470,6 +1835,9 @@
                         <div class="assignees">
                             ${assigneesHtml || '<span style="color: #ccc; font-size: 0.75rem;">未分配</span>'}
                         </div>
+                        <button class="task-detail-btn" onclick="openTaskDetail('${task.task_id}')" title="查看详情">
+                            📋
+                        </button>
                     </div>
                 </div>
             `;
@@ -1803,6 +2171,15 @@
                     }
                 });
             }
+
+            const taskDetailModal = document.getElementById('taskDetailModal');
+            if (taskDetailModal) {
+                taskDetailModal.addEventListener('click', function(e) {
+                    if (e.target === taskDetailModal) {
+                        closeTaskDetail();
+                    }
+                });
+            }
         }
 
         function openModal() {
@@ -2039,6 +2416,276 @@
             }, 2000);
         }
 
+        function openTaskDetail(taskId) {
+            console.log('📋 打开任务详情:', taskId);
+            
+            const task = state.allTasks.find(t => t.task_id === taskId);
+            if (!task) {
+                console.error('❌ 未找到任务:', taskId);
+                alert('未找到任务详情');
+                return;
+            }
+            
+            const modal = document.getElementById('taskDetailModal');
+            const titleEl = document.getElementById('detailTaskTitle');
+            const contentEl = document.getElementById('detailContent');
+            
+            titleEl.textContent = task.title;
+            
+            const statusClass = task.status === '待办' ? 'status-todo' : 
+                               task.status === '进行中' ? 'status-progress' : 'status-done';
+            
+            // 元信息卡片
+            const metaHtml = `
+                <div class="detail-meta">
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">任务ID</div>
+                        <div class="detail-meta-value">${task.task_id}</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">状态</div>
+                        <div class="detail-status-badge ${statusClass}">${task.status}</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">优先级</div>
+                        <div class="detail-meta-value">${task.priority}</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">迭代名称</div>
+                        <div class="detail-meta-value">${task.iteration_name || '未指定'}</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">总工时</div>
+                        <div class="detail-meta-value">${calculateTotalHours(task)}天</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">创建时间</div>
+                        <div class="detail-meta-value">${task.created_at || new Date().toLocaleDateString()}</div>
+                    </div>
+                </div>
+            `;
+            
+            // 参与人员
+            let participantsHtml = '<div class="detail-section"><h3>👥 参与人员</h3>';
+            if (task.participants && task.participants.length > 0) {
+                participantsHtml += '<div class="detail-person-list">';
+                task.participants.forEach(p => {
+                    participantsHtml += `
+                        <div class="detail-person-item">
+                            <div class="detail-person-avatar">${getInitials(p.name)}</div>
+                            <div class="detail-person-info">
+                                <div class="detail-person-name">${p.name}</div>
+                                <div class="detail-person-role">${p.role || '未分配'} · 预估 ${p.estimated_days || 0}天 · 实际 ${p.actual_days || 0}天</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                participantsHtml += '</div>';
+            } else {
+                participantsHtml += '<div class="detail-value" style="color: #999; padding: 12px 0;">暂无参与人员</div>';
+            }
+            participantsHtml += '</div>';
+            
+            // 审核人员
+            let reviewersHtml = '<div class="detail-section"><h3>✅ 审核人员</h3>';
+            if (task.reviewers && task.reviewers.length > 0) {
+                reviewersHtml += '<div class="detail-person-list">';
+                task.reviewers.forEach(r => {
+                    reviewersHtml += `
+                        <div class="detail-person-item">
+                            <div class="detail-person-avatar">${getInitials(r.name)}</div>
+                            <div class="detail-person-info">
+                                <div class="detail-person-name">${r.name}</div>
+                                <div class="detail-person-role">${r.role || '未分配'} · 预估 ${r.estimated_days || 0}天 · 实际 ${r.actual_days || 0}天</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                reviewersHtml += '</div>';
+            } else {
+                reviewersHtml += '<div class="detail-value" style="color: #999; padding: 12px 0;">暂无审核人员</div>';
+            }
+            reviewersHtml += '</div>';
+            
+            // 任务描述
+            let descriptionHtml = '<div class="detail-section"><h3>📝 任务描述</h3>';
+            if (task.description) {
+                descriptionHtml += `<div class="detail-description">${renderMarkdown(task.description)}</div>`;
+            } else {
+                descriptionHtml += '<div class="detail-description" style="color: #999;">暂无任务描述</div>';
+            }
+            descriptionHtml += '</div>';
+            
+            contentEl.innerHTML = `
+                ${metaHtml}
+                ${participantsHtml}
+                ${reviewersHtml}
+                ${descriptionHtml}
+            `;
+            
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        let isDragging = false;
+        let dragStartPos = { x: 0, y: 0 };
+        let panelOffset = { x: 0, y: 0 };
+        let initialRect = null;
+        let cssTransformX = 0;
+        let cssTransformY = 0;
+
+        // 统一获取坐标的函数
+        function getEventCoords(e) {
+            if (e.type.startsWith('touch')) {
+                if (e.touches && e.touches.length > 0) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+                if (e.changedTouches && e.changedTouches.length > 0) {
+                    return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+                }
+            }
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        function initStatsDrag() {
+            const statsPanel = document.getElementById('statsPanel');
+            const dragHandle = document.getElementById('statsDragHandle');
+            
+            if (!statsPanel || !dragHandle) return;
+
+            // 保存初始位置和 CSS transform
+            saveInitialState();
+
+            // 监听窗口大小变化，重新保存初始状态
+            window.addEventListener('resize', () => {
+                saveInitialState();
+            });
+
+            // 鼠标事件
+            dragHandle.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            
+            // 触摸事件
+            dragHandle.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', stopDrag);
+            document.addEventListener('touchcancel', stopDrag);
+        }
+
+        function saveInitialState() {
+            const statsPanel = document.getElementById('statsPanel');
+            if (!statsPanel) return;
+            
+            // 保存初始 rect
+            initialRect = statsPanel.getBoundingClientRect();
+            
+            // 获取 CSS 中已有的 transform 值
+            const computedStyle = getComputedStyle(statsPanel);
+            const transform = computedStyle.transform;
+            
+            // 解析 CSS transform 矩阵
+            if (transform && transform !== 'none') {
+                const matrix = transform.match(/matrix.*\((.+)\)/);
+                if (matrix && matrix[1]) {
+                    const values = matrix[1].split(', ');
+                    cssTransformX = parseFloat(values[4]) || 0;
+                    cssTransformY = parseFloat(values[5]) || 0;
+                }
+            } else {
+                cssTransformX = 0;
+                cssTransformY = 0;
+            }
+            
+            // 重置偏移量（相对于 CSS transform）
+            panelOffset = { x: 0, y: 0 };
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            isDragging = true;
+            
+            const statsPanel = document.getElementById('statsPanel');
+            
+            // 确保有初始位置
+            if (!initialRect) {
+                saveInitialState();
+            }
+            
+            const coords = getEventCoords(e);
+            dragStartPos = { x: coords.x, y: coords.y };
+            
+            statsPanel.style.zIndex = '200';
+            statsPanel.style.cursor = 'grabbing';
+            
+            document.body.style.userSelect = 'none';
+            document.body.style.webkitUserSelect = 'none';
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const statsPanel = document.getElementById('statsPanel');
+            const coords = getEventCoords(e);
+            
+            const deltaX = coords.x - dragStartPos.x;
+            const deltaY = coords.y - dragStartPos.y;
+            
+            // 新的偏移量（相对于 CSS transform）
+            let newOffsetX = panelOffset.x + deltaX;
+            let newOffsetY = panelOffset.y + deltaY;
+            
+            // 边界检查（考虑 CSS transform）
+            const effectiveLeft = initialRect.left;
+            const effectiveTop = initialRect.top;
+            const effectiveRight = initialRect.right;
+            const effectiveBottom = initialRect.bottom;
+            
+            const minOffsetX = -effectiveLeft + 10;
+            const maxOffsetX = window.innerWidth - effectiveRight - 10;
+            const minOffsetY = -effectiveTop + 10;
+            const maxOffsetY = window.innerHeight - effectiveBottom - 10;
+            
+            newOffsetX = Math.max(minOffsetX, Math.min(maxOffsetX, newOffsetX));
+            newOffsetY = Math.max(minOffsetY, Math.min(maxOffsetY, newOffsetY));
+            
+            // 应用 transform（组合 CSS transform + 拖动偏移）
+            const finalX = cssTransformX + newOffsetX;
+            const finalY = cssTransformY + newOffsetY;
+            statsPanel.style.transform = `translate(${finalX}px, ${finalY}px)`;
+            
+            panelOffset = { x: newOffsetX, y: newOffsetY };
+            dragStartPos = { x: coords.x, y: coords.y };
+        }
+
+        function stopDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const statsPanel = document.getElementById('statsPanel');
+            if (statsPanel) {
+                statsPanel.style.zIndex = '150';
+                statsPanel.style.cursor = 'move';
+            }
+            
+            document.body.style.userSelect = '';
+            document.body.style.webkitUserSelect = '';
+        }
+
+        function closeTaskDetail() {
+            const modal = document.getElementById('taskDetailModal');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        // 图表相关函数
         async function loadTasks() {
             try {
                 // 优先从 SessionStorage 加载
@@ -2135,6 +2782,7 @@
                 
                 initEventListeners();
                 renderBoard();
+                initStatsDrag();
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'block';
