@@ -122,7 +122,7 @@
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
                 <div class="stat-value" id="avg-hours">--</div>
-                <div class="stat-label">平均工时</div>
+                <div class="stat-label">平均天数</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
@@ -141,19 +141,19 @@
     </main>
 
     <script>
-        function calculateTaskHours(task) {
-            let hours = 0;
-            if (task.estimated_hours) {
-                hours += parseFloat(task.estimated_hours) || 0;
-            }
-            if (task.subtasks && Array.isArray(task.subtasks)) {
-                task.subtasks.forEach(subtask => {
-                    if (subtask.estimated_hours) {
-                        hours += parseFloat(subtask.estimated_hours) || 0;
-                    }
+        function calculateTaskDays(task) {
+            let days = 0;
+            if (task.participants && Array.isArray(task.participants)) {
+                task.participants.forEach(p => {
+                    days += parseFloat(p.estimated_days) || 0;
                 });
             }
-            return hours;
+            if (task.reviewers && Array.isArray(task.reviewers)) {
+                task.reviewers.forEach(r => {
+                    days += parseFloat(r.estimated_days) || 0;
+                });
+            }
+            return days;
         }
 
         async function calculateStats() {
@@ -163,45 +163,57 @@
             const teamCountEl = document.getElementById('team-count');
 
             try {
+                console.log('Fetching data files...');
                 const [configRes, tasksRes] = await Promise.all([
                     fetch('data/projects/xiyouji/config.json'),
                     fetch('data/projects/xiyouji/tasks.json')
                 ]);
 
+                console.log('Config response:', configRes.ok, configRes.status);
+                console.log('Tasks response:', tasksRes.ok, tasksRes.status);
+
                 if (!configRes.ok || !tasksRes.ok) {
-                    throw new Error('Failed to load data files');
+                    throw new Error(`Failed to load data files: config=${configRes.status}, tasks=${tasksRes.status}`);
                 }
 
                 const config = await configRes.json();
-                const tasks = await tasksRes.json();
+                const tasksData = await tasksRes.json();
+                const tasks = tasksData.tasks || [];
+                console.log('Loaded tasks:', tasks.length, 'config:', config.project_name);
 
                 const totalTasks = tasks.length;
                 const completedTasks = tasks.filter(t => t.status === '已完成').length;
                 const completionRate = totalTasks > 0 
                     ? (completedTasks / totalTasks * 100).toFixed(1) 
                     : 0;
-                const totalHours = tasks.reduce((sum, t) => sum + calculateTaskHours(t), 0);
-                const avgHours = totalTasks > 0 
-                    ? (totalHours / totalTasks).toFixed(1) 
+                const totalDays = tasks.reduce((sum, t) => sum + calculateTaskDays(t), 0);
+                const avgDays = totalTasks > 0 
+                    ? (totalDays / totalTasks).toFixed(1) 
                     : 0;
                 const teamCount = config.resource_pool ? config.resource_pool.length : 0;
 
+                console.log('Stats calculated:', { totalTasks, completedTasks, completionRate, totalDays, avgDays, teamCount });
+
                 totalTasksEl.textContent = totalTasks;
                 completionRateEl.textContent = completionRate + '%';
-                avgHoursEl.textContent = avgHours + 'h';
+                avgHoursEl.textContent = avgDays + '天';
                 teamCountEl.textContent = teamCount;
             } catch (error) {
                 console.error('Error loading statistics:', error);
+                console.error('Stack trace:', error.stack);
                 totalTasksEl.textContent = '--';
                 completionRateEl.textContent = '--';
                 avgHoursEl.textContent = '--';
                 teamCountEl.textContent = '--';
                 
                 const statsPanel = document.getElementById('stats-panel');
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'error-message';
-                errorMsg.textContent = '统计数据加载失败，请刷新页面重试';
-                statsPanel.appendChild(errorMsg);
+                const existingError = statsPanel.querySelector('.error-message');
+                if (!existingError) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'error-message';
+                    errorMsg.textContent = '统计数据加载失败: ' + error.message;
+                    statsPanel.appendChild(errorMsg);
+                }
             }
         }
 
