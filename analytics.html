@@ -42,6 +42,63 @@
             border: 1px solid #ddd;
             border-radius: 8px;
         }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            border: none;
+            padding: 0;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stats-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -51,8 +108,27 @@
     </header>
 
     <main>
-        <section id="stats-panel">
-            <p>统计卡片区域</p>
+        <section id="stats-panel" class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="total-tasks">--</div>
+                <div class="stat-label">任务总数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value" id="completion-rate">--</div>
+                <div class="stat-label">完成率</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="avg-hours">--</div>
+                <div class="stat-label">平均工时</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="team-count">--</div>
+                <div class="stat-label">团队成员</div>
+            </div>
         </section>
 
         <section id="role-chart">
@@ -65,6 +141,71 @@
     </main>
 
     <script>
+        function calculateTaskHours(task) {
+            let hours = 0;
+            if (task.estimated_hours) {
+                hours += parseFloat(task.estimated_hours) || 0;
+            }
+            if (task.subtasks && Array.isArray(task.subtasks)) {
+                task.subtasks.forEach(subtask => {
+                    if (subtask.estimated_hours) {
+                        hours += parseFloat(subtask.estimated_hours) || 0;
+                    }
+                });
+            }
+            return hours;
+        }
+
+        async function calculateStats() {
+            const totalTasksEl = document.getElementById('total-tasks');
+            const completionRateEl = document.getElementById('completion-rate');
+            const avgHoursEl = document.getElementById('avg-hours');
+            const teamCountEl = document.getElementById('team-count');
+
+            try {
+                const [configRes, tasksRes] = await Promise.all([
+                    fetch('config.json'),
+                    fetch('tasks.json')
+                ]);
+
+                if (!configRes.ok || !tasksRes.ok) {
+                    throw new Error('Failed to load data files');
+                }
+
+                const config = await configRes.json();
+                const tasks = await tasksRes.json();
+
+                const totalTasks = tasks.length;
+                const completedTasks = tasks.filter(t => t.status === '已完成').length;
+                const completionRate = totalTasks > 0 
+                    ? (completedTasks / totalTasks * 100).toFixed(1) 
+                    : 0;
+                const totalHours = tasks.reduce((sum, t) => sum + calculateTaskHours(t), 0);
+                const avgHours = totalTasks > 0 
+                    ? (totalHours / totalTasks).toFixed(1) 
+                    : 0;
+                const teamCount = config.resource_pool ? config.resource_pool.length : 0;
+
+                totalTasksEl.textContent = totalTasks;
+                completionRateEl.textContent = completionRate + '%';
+                avgHoursEl.textContent = avgHours + 'h';
+                teamCountEl.textContent = teamCount;
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                totalTasksEl.textContent = '--';
+                completionRateEl.textContent = '--';
+                avgHoursEl.textContent = '--';
+                teamCountEl.textContent = '--';
+                
+                const statsPanel = document.getElementById('stats-panel');
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.textContent = '统计数据加载失败，请刷新页面重试';
+                statsPanel.appendChild(errorMsg);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', calculateStats);
     </script>
 </body>
 </html>
