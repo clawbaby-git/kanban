@@ -149,6 +149,29 @@
             content: '🔥';
         }
 
+        .analytics-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--primary-gradient);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .analytics-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .analytics-link::before {
+            content: '📊';
+        }
+
         .view-toggle {
             display: flex;
             background: #f0f0f0;
@@ -1501,6 +1524,10 @@
 
             <a href="heatmap.html" class="heatmap-link" title="查看人员负荷热力图">
                 人员负荷
+            </a>
+
+            <a href="analytics.html" class="analytics-link" title="查看数据分析图表">
+                数据分析
             </a>
 
             <div class="view-toggle">
