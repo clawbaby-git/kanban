@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人员负荷热力图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background-color: #fff;
+            border-bottom: 1px solid #e4e7ed;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #303133;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: #409eff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #66b1ff;
+        }
+
+        .back-link::before {
+            content: '←';
+            margin-right: 4px;
+        }
+
+        .main-content {
+            padding: 24px;
+            height: calc(100% - 73px);
+        }
+
+        .heatmap-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            min-height: 500px;
+        }
+
+        #heatmap-chart {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e4e7ed;
+            border-top-color: #409eff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 12px;
+            color: #606266;
+            font-size: 14px;
+        }
+
+        .error-message {
+            color: #f56c6c;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e4e7ed;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #909399;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .modal-close:hover {
+            color: #606266;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-info {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 4px;
+        }
+
+        .modal-info p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #606266;
+        }
+
+        .modal-info strong {
+            color: #303133;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .task-item {
+            padding: 12px;
+            border: 1px solid #e4e7ed;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .task-item h4 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #303133;
+            margin: 0 0 8px 0;
+        }
+
+        .task-item p {
+            font-size: 13px;
+            color: #606266;
+            margin: 4px 0;
+        }
+
+        .task-item .task-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .task-status.todo { background: #e6a23c; color: #fff; }
+        .task-status.in_progress { background: #409eff; color: #fff; }
+        .task-status.done { background: #67c23a; color: #fff; }
+        .task-status.blocked { background: #f56c6c; color: #fff; }
+
+        .no-tasks {
+            text-align: center;
+            color: #909399;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>人员负荷热力图</h1>
+        <a href="kanban.html" class="back-link">返回看板</a>
+    </header>
+    <main class="main-content">
+        <div class="heatmap-container">
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">正在加载数据...</div>
+            </div>
+            <div id="heatmap-chart"></div>
+        </div>
+    </main>
+    <div id="task-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">任务详情</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info">
+                    <p><strong>日期:</strong> <span id="modal-date"></span></p>
+                    <p><strong>人员:</strong> <span id="modal-person"></span></p>
+                    <p><strong>工作时长:</strong> <span id="modal-hours"></span> 小时</p>
+                </div>
+                <div id="modal-tasks"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const CONFIG_PATH = 'data/projects/xiyouji/config.json';
+        const TASKS_PATH = 'data/projects/xiyouji/tasks.json';
+        const HOURS_PER_DAY = 8;
+
+        let configData = null;
+        let tasksData = null;
+        let personPool = [];
+        let dateRange = { start: null, end: null, dates: [] };
+        let heatmapData = [];
+        let chartInstance = null;
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = show ? 'flex' : 'none';
+            }
+        }
+
+        function showError(message) {
+            const container = document.querySelector('.heatmap-container');
+            container.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        async function fetchJSON(url) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        }
+
+        function parseConfig(config) {
+            const pool = config.resource_pool.map(p => p.name);
+            const start = config.date_range.start;
+            const end = config.date_range.end;
+            
+            const dates = [];
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                dates.push(d.toISOString().split('T')[0]);
+            }
+            
+            return { personPool: pool, dateRange: { start, end, dates } };
+        }
+
+        function calculateWorkload(tasks, personPool, dates) {
+            const workload = {};
+            
+            personPool.forEach(person => {
+                workload[person] = {};
+                dates.forEach(date => {
+                    workload[person][date] = 0;
+                });
+            });
+            
+            tasks.forEach(task => {
+                const allParticipants = [...(task.participants || []), ...(task.reviewers || [])];
+                
+                allParticipants.forEach(participant => {
+                    const person = participant.name;
+                    const estimatedDays = participant.estimated_days || 0;
+                    
+                    if (workload[person] && estimatedDays > 0) {
+                        const dailyWorkload = (estimatedDays * HOURS_PER_DAY) / dates.length;
+                        dates.forEach(date => {
+                            workload[person][date] += dailyWorkload;
+                        });
+                    }
+                });
+            });
+            
+            const data = [];
+            personPool.forEach((person, personIndex) => {
+                dates.forEach((date, dayIndex) => {
+                    data.push([dayIndex, personIndex, workload[person][date]]);
+                });
+            });
+            
+            return data;
+        }
+
+        async function loadData() {
+            showLoading(true);
+            
+            try {
+                const [config, tasks] = await Promise.all([
+                    fetchJSON(CONFIG_PATH),
+                    fetchJSON(TASKS_PATH)
+                ]);
+                
+                configData = config;
+                tasksData = tasks;
+                
+                const parsed = parseConfig(configData);
+                personPool = parsed.personPool;
+                dateRange = parsed.dateRange;
+                
+                heatmapData = calculateWorkload(tasksData.tasks, personPool, dateRange.dates);
+                
+                showLoading(false);
+                
+                console.log('Data loaded successfully');
+                console.log('Person pool:', personPool);
+                console.log('Date range:', dateRange);
+                console.log('Heatmap data sample:', heatmapData.slice(0, 5));
+                
+                initChart();
+                
+            } catch (error) {
+                showLoading(false);
+                showError(`数据加载失败: ${error.message}`);
+                console.error('Failed to load data:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+        
+        function initChart() {
+            const chartDom = document.getElementById('heatmap-chart');
+            chartInstance = echarts.init(chartDom);
+            
+            const option = {
+                tooltip: {
+                    position: 'top',
+                    formatter: function(params) {
+                        const date = dateRange.dates[params.data[0]];
+                        const person = personPool[params.data[1]];
+                        const hours = params.data[2].toFixed(1);
+                        const tasks = getTasksForPersonOnDate(person, date);
+                        
+                        let taskList = tasks.length > 0 
+                            ? tasks.map(t => `<br/>• ${t.title}`).join('')
+                            : '<br/>• 无任务';
+                        
+                        return `<strong>${date}</strong><br/>` +
+                               `人员: ${person}<br/>` +
+                               `工作时长: ${hours} 小时` +
+                               `<br/>任务:${taskList}`;
+                    }
+                },
+                grid: {
+                    top: 10,
+                    left: 100,
+                    right: 50,
+                    bottom: 60,
+                    containLabel: false
+                },
+                xAxis: {
+                    type: 'category',
+                    data: dateRange.dates.map(d => {
+                        const date = new Date(d);
+                        return `${date.getMonth() + 1}/${date.getDate()}`;
+                    }),
+                    splitArea: {
+                        show: true
+                    },
+                    axisLabel: {
+                        rotate: 45,
+                        fontSize: 11
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: personPool,
+                    splitArea: {
+                        show: true
+                    },
+                    axisLabel: {
+                        fontSize: 12
+                    }
+                },
+                visualMap: {
+                    min: 0,
+                    max: 10,
+                    calculable: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: 0,
+                    inRange: {
+                        color: ['#9e9e9e', '#4caf50', '#4caf50', '#ff9800', '#f44336']
+                    },
+                    pieces: [
+                        { min: 0, max: 0, label: '0h', color: '#9e9e9e' },
+                        { min: 0.01, max: 6, label: '0-6h', color: '#4caf50' },
+                        { min: 6, max: 8, label: '6-8h', color: '#ff9800' },
+                        { min: 8, label: '>8h', color: '#f44336' }
+                    ]
+                },
+                series: [{
+                    name: '工作负荷',
+                    type: 'heatmap',
+                    data: heatmapData,
+                    label: {
+                        show: false
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+            
+            chartInstance.setOption(option);
+            
+            chartInstance.on('click', function(params) {
+                if (params.componentType === 'series') {
+                    const dateIndex = params.data[0];
+                    const personIndex = params.data[1];
+                    const hours = params.data[2];
+                    
+                    const date = dateRange.dates[dateIndex];
+                    const person = personPool[personIndex];
+                    
+                    showModal(date, person, hours);
+                }
+            });
+            
+            window.addEventListener('resize', function() {
+                if (chartInstance) {
+                    chartInstance.resize();
+                }
+            });
+        }
+        
+        function getTasksForPersonOnDate(person, date) {
+            if (!tasksData || !tasksData.tasks) return [];
+            
+            return tasksData.tasks.filter(task => {
+                const allParticipants = [...(task.participants || []), ...(task.reviewers || [])];
+                return allParticipants.some(p => p.name === person);
+            });
+        }
+        
+        function showModal(date, person, hours) {
+            const modal = document.getElementById('task-modal');
+            const modalDate = document.getElementById('modal-date');
+            const modalPerson = document.getElementById('modal-person');
+            const modalHours = document.getElementById('modal-hours');
+            const modalTasks = document.getElementById('modal-tasks');
+            
+            modalDate.textContent = date;
+            modalPerson.textContent = person;
+            modalHours.textContent = hours.toFixed(1);
+            
+            const tasks = getTasksForPersonOnDate(person, date);
+            
+            if (tasks.length === 0) {
+                modalTasks.innerHTML = '<div class="no-tasks">该日期无分配任务</div>';
+            } else {
+                let html = '<ul class="task-list">';
+                tasks.forEach(task => {
+                    const statusClass = task.status || 'todo';
+                    const statusText = getStatusText(task.status);
+                    
+                    html += `<li class="task-item">
+                        <h4>${task.title}</h4>
+                        <p>${task.description || '无描述'}</p>
+                        <p>预计工时: ${getTaskHoursForPerson(task, person).toFixed(1)} 小时</p>
+                        <span class="task-status ${statusClass}">${statusText}</span>
+                    </li>`;
+                });
+                html += '</ul>';
+                modalTasks.innerHTML = html;
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('task-modal');
+            modal.classList.remove('active');
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'todo': '待办',
+                'in_progress': '进行中',
+                'done': '已完成',
+                'blocked': '阻塞'
+            };
+            return statusMap[status] || '待办';
+        }
+        
+        function getTaskHoursForPerson(task, person) {
+            const allParticipants = [...(task.participants || []), ...(task.reviewers || [])];
+            const participant = allParticipants.find(p => p.name === person);
+            if (participant && participant.estimated_days) {
+                return participant.estimated_days * HOURS_PER_DAY;
+            }
+            return 0;
+        }
+        
+        document.getElementById('task-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
