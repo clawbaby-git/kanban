@@ -99,6 +99,39 @@
             text-align: center;
             padding: 20px;
         }
+
+        .chart-container {
+            width: 100%;
+            min-height: 400px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title h2 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .chart-title p {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            color: #666;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -132,7 +165,13 @@
         </section>
 
         <section id="role-chart">
-            <p>角色分布图表区域</p>
+            <div class="chart-title">
+                <h2>角色工时分布</h2>
+                <p>各角色投入工时占比</p>
+            </div>
+            <div id="role-chart-container" class="chart-container">
+                <div class="loading">加载中...</div>
+            </div>
         </section>
 
         <section id="workload-chart">
@@ -154,6 +193,135 @@
                 });
             }
             return days;
+        }
+
+        function aggregateWorkDaysByRole(tasks, resourcePool) {
+            const roleWorkDays = {};
+            const rolePersonMap = {};
+            
+            resourcePool.forEach(person => {
+                rolePersonMap[person.name] = person.roles;
+                person.roles.forEach(role => {
+                    if (!roleWorkDays[role]) {
+                        roleWorkDays[role] = 0;
+                    }
+                });
+            });
+            
+            tasks.forEach(task => {
+                const allWorkers = [];
+                if (task.participants && Array.isArray(task.participants)) {
+                    allWorkers.push(...task.participants);
+                }
+                if (task.reviewers && Array.isArray(task.reviewers)) {
+                    allWorkers.push(...task.reviewers);
+                }
+                
+                allWorkers.forEach(worker => {
+                    const personRoles = rolePersonMap[worker.name];
+                    const estimatedDays = parseFloat(worker.estimated_days) || 0;
+                    
+                    if (personRoles && personRoles.length > 0) {
+                        const daysPerRole = estimatedDays / personRoles.length;
+                        personRoles.forEach(role => {
+                            roleWorkDays[role] = (roleWorkDays[role] || 0) + daysPerRole;
+                        });
+                    }
+                });
+            });
+            
+            return roleWorkDays;
+        }
+
+        function initRoleDistributionChart(roleWorkDays) {
+            const chartDom = document.getElementById('role-chart-container');
+            
+            if (!chartDom) {
+                console.error('Chart container not found');
+                return;
+            }
+            
+            chartDom.innerHTML = '';
+            
+            const chart = echarts.init(chartDom);
+            
+            const data = Object.entries(roleWorkDays)
+                .filter(([role, days]) => days > 0)
+                .map(([role, days]) => ({
+                    name: role,
+                    value: days.toFixed(1)
+                }));
+            
+            if (data.length === 0) {
+                chartDom.innerHTML = '<div class="error-message">暂无角色工时数据</div>';
+                return;
+            }
+            
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        const total = data.reduce((sum, item) => sum + parseFloat(item.value), 0);
+                        const percentage = ((parseFloat(params.value) / total) * 100).toFixed(1);
+                        return `${params.name}<br/>工时: ${params.value}天<br/>占比: ${percentage}%`;
+                    }
+                },
+                legend: {
+                    orient: 'horizontal',
+                    bottom: '5%',
+                    left: 'center',
+                    type: 'scroll',
+                    textStyle: {
+                        fontSize: 12
+                    }
+                },
+                color: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'],
+                series: [
+                    {
+                        name: '角色工时',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        center: ['50%', '45%'],
+                        avoidLabelOverlap: true,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: true,
+                            position: 'outside',
+                            formatter: '{b}: {d}%',
+                            fontSize: 12
+                        },
+                        labelLine: {
+                            show: true,
+                            length: 15,
+                            length2: 10,
+                            smooth: true
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: 14,
+                                fontWeight: 'bold'
+                            },
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        },
+                        data: data
+                    }
+                ]
+            };
+            
+            chart.setOption(option);
+            
+            window.addEventListener('resize', function() {
+                chart.resize();
+            });
         }
 
         async function calculateStats() {
@@ -198,6 +366,10 @@
                 completionRateEl.textContent = completionRate + '%';
                 avgHoursEl.textContent = avgDays + '天';
                 teamCountEl.textContent = teamCount;
+
+                const roleWorkDays = aggregateWorkDaysByRole(tasks, config.resource_pool || []);
+                console.log('Role work days:', roleWorkDays);
+                initRoleDistributionChart(roleWorkDays);
             } catch (error) {
                 console.error('Error loading statistics:', error);
                 console.error('Stack trace:', error.stack);
@@ -213,6 +385,11 @@
                     errorMsg.className = 'error-message';
                     errorMsg.textContent = '统计数据加载失败: ' + error.message;
                     statsPanel.appendChild(errorMsg);
+                }
+                
+                const chartContainer = document.getElementById('role-chart-container');
+                if (chartContainer) {
+                    chartContainer.innerHTML = '<div class="error-message">图表加载失败: ' + error.message + '</div>';
                 }
             }
         }
