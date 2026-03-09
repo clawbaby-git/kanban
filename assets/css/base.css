@@ -1,0 +1,53 @@
+:root {
+    --bg-base: #f3f0ea;
+    --bg-accent: #dfe8d8;
+    --ink-strong: #1f2a1f;
+    --ink-body: #435143;
+    --ink-soft: #6f7b70;
+    --surface: rgba(255, 252, 245, 0.88);
+    --surface-solid: #fffaf2;
+    --surface-strong: #ffffff;
+    --line-soft: rgba(31, 42, 31, 0.12);
+    --line-strong: rgba(31, 42, 31, 0.2);
+    --brand: #2f6b55;
+    --brand-strong: #224d3e;
+    --brand-soft: #d9eadf;
+    --warm: #c07a3d;
+    --danger: #b94a48;
+    --shadow-sm: 0 8px 22px rgba(37, 45, 37, 0.08);
+    --shadow-md: 0 18px 42px rgba(37, 45, 37, 0.12);
+    --radius-sm: 12px;
+    --radius-md: 20px;
+    --radius-lg: 28px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    color: var(--ink-body);
+    background:
+        radial-gradient(circle at top left, rgba(47, 107, 85, 0.14), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(192, 122, 61, 0.12), transparent 35%),
+        linear-gradient(180deg, var(--bg-base), #f7f4ee 48%, #efe8df 100%);
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    min-height: 100vh;
+}
+
+a {
+    color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}

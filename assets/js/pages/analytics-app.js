@@ -1,22 +1,17 @@
+import { createManagedChart, disposeManagedCharts, resizeManagedCharts } from '../shared/chart-utils.js';
 import { loadProjectData } from '../shared/data-service.js';
-import {
-    aggregateWorkDaysByRole,
-    buildMemberWorkloads,
-    calculateTaskDays
-} from '../shared/task-utils.js';
+import { buildAnalyticsSnapshot } from '../shared/insights.js';
 
 const charts = [];
 
-function registerChart(chart) {
-    charts.push(chart);
-    return chart;
+function setText(id, value) {
+    const node = document.getElementById(id);
+    if (node) {
+        node.textContent = value;
+    }
 }
 
-function disposeCharts() {
-    charts.splice(0).forEach(chart => chart.dispose());
-}
-
-function initRoleDistributionChart(roleWorkDays) {
+function renderRoleDistributionChart(roleWorkDays) {
     const container = document.getElementById('role-chart-container');
     container.innerHTML = '';
 
@@ -29,7 +24,7 @@ function initRoleDistributionChart(roleWorkDays) {
         return;
     }
 
-    const chart = registerChart(echarts.init(container));
+    const chart = createManagedChart(charts, container);
     chart.setOption({
         tooltip: {
             trigger: 'item',
@@ -41,17 +36,17 @@ function initRoleDistributionChart(roleWorkDays) {
         },
         legend: {
             orient: 'horizontal',
-            bottom: '5%',
+            bottom: '4%',
             left: 'center',
             type: 'scroll',
             textStyle: { fontSize: 12 }
         },
-        color: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'],
+        color: ['#2f6b55', '#c07a3d', '#517664', '#d1a05e', '#8da18f', '#5c7a6a'],
         series: [{
             name: '角色工时',
             type: 'pie',
-            radius: ['40%', '70%'],
-            center: ['50%', '45%'],
+            radius: ['38%', '68%'],
+            center: ['50%', '44%'],
             avoidLabelOverlap: true,
             itemStyle: {
                 borderRadius: 10,
@@ -64,22 +59,11 @@ function initRoleDistributionChart(roleWorkDays) {
                 formatter: '{b}: {d}%',
                 fontSize: 12
             },
-            labelLine: {
-                show: true,
-                length: 15,
-                length2: 10,
-                smooth: true
-            },
             emphasis: {
                 label: {
                     show: true,
                     fontSize: 14,
                     fontWeight: 'bold'
-                },
-                itemStyle: {
-                    shadowBlur: 10,
-                    shadowOffsetX: 0,
-                    shadowColor: 'rgba(0, 0, 0, 0.5)'
                 }
             },
             data
@@ -87,13 +71,13 @@ function initRoleDistributionChart(roleWorkDays) {
     });
 }
 
-function initWorkloadChart(teamMembers, taskHours, nonTaskHours) {
+function renderWorkloadChart(teamMembers, taskHours, nonTaskHours) {
     const container = document.getElementById('workload-chart-container');
     container.innerHTML = '';
 
     const taskSeries = teamMembers.map(name => Number((taskHours[name] || 0).toFixed(1)));
     const nonTaskSeries = teamMembers.map(name => Number((nonTaskHours[name] || 0).toFixed(1)));
-    const chart = registerChart(echarts.init(container));
+    const chart = createManagedChart(charts, container);
 
     chart.setOption({
         tooltip: {
@@ -122,7 +106,7 @@ function initWorkloadChart(teamMembers, taskHours, nonTaskHours) {
             data: teamMembers,
             axisLabel: {
                 fontSize: 12,
-                rotate: teamMembers.length > 6 ? 30 : 0
+                rotate: teamMembers.length > 6 ? 24 : 0
             }
         },
         yAxis: {
@@ -135,11 +119,11 @@ function initWorkloadChart(teamMembers, taskHours, nonTaskHours) {
                 name: '任务工时',
                 type: 'bar',
                 stack: 'total',
-                barWidth: '50%',
+                barWidth: '52%',
                 itemStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#667eea' },
-                        { offset: 1, color: '#764ba2' }
+                        { offset: 0, color: '#2f6b55' },
+                        { offset: 1, color: '#224d3e' }
                     ])
                 },
                 data: taskSeries
@@ -148,11 +132,11 @@ function initWorkloadChart(teamMembers, taskHours, nonTaskHours) {
                 name: '非任务工时',
                 type: 'bar',
                 stack: 'total',
-                barWidth: '50%',
+                barWidth: '52%',
                 itemStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#f5af19' },
-                        { offset: 1, color: '#f12711' }
+                        { offset: 0, color: '#d4a15f' },
+                        { offset: 1, color: '#b7742f' }
                     ])
                 },
                 data: nonTaskSeries,
@@ -164,20 +148,19 @@ function initWorkloadChart(teamMembers, taskHours, nonTaskHours) {
                         return total > 0 ? `${total.toFixed(1)}天` : '';
                     },
                     fontSize: 11,
-                    color: '#333'
+                    color: '#2c332c'
                 }
             }
         ],
-        animationDuration: 1000,
-        animationEasing: 'elasticOut'
+        animationDuration: 700
     });
 }
 
 function renderError(message) {
-    document.getElementById('total-tasks').textContent = '--';
-    document.getElementById('completion-rate').textContent = '--';
-    document.getElementById('avg-hours').textContent = '--';
-    document.getElementById('team-count').textContent = '--';
+    setText('total-tasks', '--');
+    setText('completion-rate', '--');
+    setText('avg-hours', '--');
+    setText('team-count', '--');
     document.getElementById('role-chart-container').innerHTML = `<div class="error-message">图表加载失败: ${message}</div>`;
     document.getElementById('workload-chart-container').innerHTML = `<div class="error-message">图表加载失败: ${message}</div>`;
 
@@ -192,36 +175,26 @@ function renderError(message) {
 
 async function init() {
     try {
-        disposeCharts();
+        disposeManagedCharts(charts);
         const { config, tasks, nonTasks } = await loadProjectData({
             includeConfig: true,
             includeNonTasks: true,
             preferSessionTasks: true
         });
+        const snapshot = buildAnalyticsSnapshot(tasks, config, nonTasks);
 
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter(task => task.status === '已完成').length;
-        const completionRate = totalTasks ? ((completedTasks / totalTasks) * 100).toFixed(1) : '0.0';
-        const totalDays = tasks.reduce((sum, task) => sum + calculateTaskDays(task), 0);
-        const avgDays = totalTasks ? (totalDays / totalTasks).toFixed(1) : '0.0';
-        const teamMembers = (config?.resource_pool || []).map(person => person.name);
+        setText('total-tasks', String(snapshot.totalTasks));
+        setText('completion-rate', `${snapshot.completionRate.toFixed(1)}%`);
+        setText('avg-hours', `${snapshot.avgDays.toFixed(1)}天`);
+        setText('team-count', String(snapshot.teamCount));
 
-        document.getElementById('total-tasks').textContent = totalTasks;
-        document.getElementById('completion-rate').textContent = `${completionRate}%`;
-        document.getElementById('avg-hours').textContent = `${avgDays}天`;
-        document.getElementById('team-count').textContent = teamMembers.length;
-
-        initRoleDistributionChart(aggregateWorkDaysByRole(tasks, config?.resource_pool || []));
-        const { taskHours, nonTaskHours } = buildMemberWorkloads(teamMembers, tasks, nonTasks);
-        initWorkloadChart(teamMembers, taskHours, nonTaskHours);
+        renderRoleDistributionChart(snapshot.roleWorkDays);
+        renderWorkloadChart(snapshot.teamMembers, snapshot.taskHours, snapshot.nonTaskHours);
     } catch (error) {
         console.error('加载分析页失败:', error);
         renderError(error.message || '未知错误');
     }
 }
 
-window.addEventListener('resize', () => {
-    charts.forEach(chart => chart.resize());
-});
-
+window.addEventListener('resize', () => resizeManagedCharts(charts));
 document.addEventListener('DOMContentLoaded', init);
