@@ -4,141 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>看板 - 西游记项目</title>
-        <link rel="stylesheet" href="assets/css/kanban.css">
-
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/page-shell.css">
+    <link rel="stylesheet" href="assets/css/kanban.css">
 </head>
-<body>
-    <!-- 顶部工具栏 -->
-    <div class="toolbar">
-        <div class="toolbar-content">
-            <div class="logo">📋 西游记看板</div>
-            
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索任务标题、ID或负责人..." autocomplete="off">
-            </div>
+<body class="page-shell kanban-page">
+    <div class="page-frame kanban-frame">
+        <header class="toolbar page-header">
+            <div class="toolbar-content">
+                <div class="page-heading toolbar-heading">
+                    <div class="page-kicker">Kanban Board</div>
+                    <div class="logo">西游记项目看板</div>
+                    <p class="page-subtitle">统一浏览、筛选、编辑和删除任务。当前页面已接入共享视觉体系与模块化看板架构。</p>
+                </div>
 
-            <div class="filter-group">
-                <button class="filter-btn active" data-priority="all">全部</button>
-                <button class="filter-btn" data-priority="高">高优先级</button>
-                <button class="filter-btn" data-priority="中">中优先级</button>
-                <button class="filter-btn" data-priority="低">低优先级</button>
-            </div>
+                <div class="toolbar-controls">
+                    <div class="toolbar-links page-nav" aria-label="主导航">
+                        <a href="index.html" class="page-nav-link">首页</a>
+                        <a href="heatmap.html" class="page-nav-link">热力图</a>
+                        <a href="analytics.html" class="page-nav-link">分析</a>
+                        <a href="kanban.html" class="page-nav-link is-active" aria-current="page">看板</a>
+                    </div>
 
-            <a href="heatmap.html" class="heatmap-link" title="查看人员负荷热力图">
-                人员负荷
-            </a>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="搜索任务标题、ID或负责人..." autocomplete="off">
+                    </div>
 
-            <a href="analytics.html" class="analytics-link" title="查看数据分析图表">
-                数据分析
-            </a>
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-priority="all">全部</button>
+                        <button class="filter-btn" data-priority="高">高优先级</button>
+                        <button class="filter-btn" data-priority="中">中优先级</button>
+                        <button class="filter-btn" data-priority="低">低优先级</button>
+                    </div>
 
-            <div class="view-toggle">
-                <button class="view-btn active" data-view="list">列表</button>
-                <button class="view-btn" data-view="group">分组</button>
-            </div>
+                    <div class="toolbar-actions">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="list">列表</button>
+                            <button class="view-btn" data-view="group">分组</button>
+                        </div>
 
-            <button class="add-task-btn" id="addTaskBtn" data-action="open-task-modal" title="添加新任务">
-                <span>➕</span> 添加任务
-            </button>
+                        <button class="add-task-btn" id="addTaskBtn" data-action="open-task-modal" title="添加新任务">
+                            <span>➕</span> 添加任务
+                        </button>
 
-            <button class="export-btn" data-action="export" title="导出任务数据">
-                <span>📤</span> 导出
-            </button>
+                        <button class="export-btn" data-action="export" title="导出任务数据">
+                            <span>📤</span> 导出
+                        </button>
 
-            <button class="clear-btn" data-action="clear-session" title="清空会话数据">
-                <span>🗑️</span> 清空
-            </button>
-        </div>
-    </div>
-
-    <!-- 统计面板 -->
-    <div class="stats-panel" id="statsPanel">
-        <div class="stats-drag-handle" id="statsDragHandle">📊 统计</div>
-        <div class="stat-item">
-            <div class="stat-value" id="totalTasks">0</div>
-            <div class="stat-label">总任务</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-            <div class="stat-value" id="totalHours">0</div>
-            <div class="stat-label">总工时(天)</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-            <div class="stat-value" id="completionRate">0%</div>
-            <div class="stat-label">完成率</div>
-        </div>
-    </div>
-
-    <!-- 看板容器 -->
-    <div class="board-container">
-        <div id="loading" class="loading">
-            <div class="loading-spinner"></div>
-            <div>加载任务数据...</div>
-        </div>
-
-        <div id="error" class="error" style="display: none;"></div>
-
-        <div class="board" id="board" style="display: none;">
-            <!-- 待办列 -->
-            <div class="column todo" data-status="待办">
-                <div class="column-header">
-                    <span class="column-title">待办</span>
-                    <div class="column-stats">
-                        <span class="column-hours" id="todo-hours">0天</span>
-                        <span class="column-count" id="todo-count">0</span>
-                        <button class="collapse-btn" title="折叠/展开">▼</button>
+                        <button class="clear-btn" data-action="clear-session" title="清空会话数据">
+                            <span>🗑️</span> 清空
+                        </button>
                     </div>
                 </div>
-                <div class="task-list-container" id="todo-container">
-                    <div class="task-list" id="todo-list"></div>
+            </div>
+        </header>
+
+        <main class="kanban-main">
+            <div class="stats-panel" id="statsPanel">
+                <div class="stats-drag-handle" id="statsDragHandle">📊 统计</div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">总任务</div>
                 </div>
-                <div class="pagination" id="todo-pagination" style="display: none;"></div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalHours">0</div>
+                    <div class="stat-label">总工时(天)</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-value" id="completionRate">0%</div>
+                    <div class="stat-label">完成率</div>
+                </div>
             </div>
 
-            <!-- 进行中列 -->
-            <div class="column in-progress" data-status="进行中">
-                <div class="column-header">
-                    <span class="column-title">进行中</span>
-                    <div class="column-stats">
-                        <span class="column-hours" id="progress-hours">0天</span>
-                        <span class="column-count" id="progress-count">0</span>
-                        <button class="collapse-btn" title="折叠/展开">▼</button>
+            <div class="board-container">
+                <div id="loading" class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>加载任务数据...</div>
+                </div>
+
+                <div id="error" class="error" style="display: none;"></div>
+
+                <div class="board" id="board" style="display: none;">
+                    <div class="column todo" data-status="待办">
+                        <div class="column-header">
+                            <span class="column-title">待办</span>
+                            <div class="column-stats">
+                                <span class="column-hours" id="todo-hours">0天</span>
+                                <span class="column-count" id="todo-count">0</span>
+                                <button class="collapse-btn" title="折叠/展开">▼</button>
+                            </div>
+                        </div>
+                        <div class="task-list-container" id="todo-container">
+                            <div class="task-list" id="todo-list"></div>
+                        </div>
+                        <div class="pagination" id="todo-pagination" style="display: none;"></div>
+                    </div>
+
+                    <div class="column in-progress" data-status="进行中">
+                        <div class="column-header">
+                            <span class="column-title">进行中</span>
+                            <div class="column-stats">
+                                <span class="column-hours" id="progress-hours">0天</span>
+                                <span class="column-count" id="progress-count">0</span>
+                                <button class="collapse-btn" title="折叠/展开">▼</button>
+                            </div>
+                        </div>
+                        <div class="task-list-container" id="progress-container">
+                            <div class="task-list" id="progress-list"></div>
+                        </div>
+                        <div class="pagination" id="progress-pagination" style="display: none;"></div>
+                    </div>
+
+                    <div class="column done" data-status="已完成">
+                        <div class="column-header">
+                            <span class="column-title">已完成</span>
+                            <div class="column-stats">
+                                <span class="column-hours" id="done-hours">0天</span>
+                                <span class="column-count" id="done-count">0</span>
+                                <button class="collapse-btn" title="折叠/展开">▼</button>
+                            </div>
+                        </div>
+                        <div class="task-list-container" id="done-container">
+                            <div class="task-list" id="done-list"></div>
+                        </div>
+                        <div class="pagination" id="done-pagination" style="display: none;"></div>
                     </div>
                 </div>
-                <div class="task-list-container" id="progress-container">
-                    <div class="task-list" id="progress-list"></div>
-                </div>
-                <div class="pagination" id="progress-pagination" style="display: none;"></div>
             </div>
 
-            <!-- 已完成列 -->
-            <div class="column done" data-status="已完成">
-                <div class="column-header">
-                    <span class="column-title">已完成</span>
-                    <div class="column-stats">
-                        <span class="column-hours" id="done-hours">0天</span>
-                        <span class="column-count" id="done-count">0</span>
-                        <button class="collapse-btn" title="折叠/展开">▼</button>
-                    </div>
-                </div>
-                <div class="task-list-container" id="done-container">
-                    <div class="task-list" id="done-list"></div>
-                </div>
-                <div class="pagination" id="done-pagination" style="display: none;"></div>
+            <div class="quick-nav" id="quickNav" style="display: none;">
+                <button class="quick-nav-btn" data-action="scroll-column:todo" title="待办">📝</button>
+                <button class="quick-nav-btn" data-action="scroll-column:progress" title="进行中">🚀</button>
+                <button class="quick-nav-btn" data-action="scroll-column:done" title="已完成">✅</button>
+                <button class="quick-nav-btn" data-action="scroll-top" title="回到顶部">⬆️</button>
             </div>
-        </div>
+        </main>
     </div>
 
-    <!-- 快速导航 -->
-    <div class="quick-nav" id="quickNav" style="display: none;">
-        <button class="quick-nav-btn" data-action="scroll-column:todo" title="待办">📝</button>
-        <button class="quick-nav-btn" data-action="scroll-column:progress" title="进行中">🚀</button>
-        <button class="quick-nav-btn" data-action="scroll-column:done" title="已完成">✅</button>
-        <button class="quick-nav-btn" data-action="scroll-top" title="回到顶部">⬆️</button>
-    </div>
-
-    <!-- 添加任务模态框 -->
     <div class="modal-overlay" id="taskModal">
         <div class="modal">
             <div class="modal-header">
@@ -220,19 +224,16 @@
         </div>
     </div>
 
-    <!-- 任务详情模态框 -->
     <div class="modal-overlay" id="taskDetailModal">
         <div class="modal detail-modal">
             <div class="modal-header">
                 <h2 id="detailTaskTitle">任务详情</h2>
                 <button class="modal-close" data-action="close-task-detail" title="关闭">×</button>
             </div>
-            <div class="detail-content" id="detailContent">
-                <!-- 动态填充任务详情 -->
-            </div>
+            <div class="detail-content" id="detailContent"></div>
         </div>
     </div>
 
-        <script type="module" src="assets/js/pages/kanban-app.js"></script>
+    <script type="module" src="assets/js/pages/kanban-app.js"></script>
 </body>
 </html>
