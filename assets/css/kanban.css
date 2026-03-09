@@ -1116,6 +1116,13 @@
             margin: 16px 0;
         }
 
+        .detail-actions-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-bottom: 18px;
+        }
+
         .detail-meta {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1287,7 +1294,8 @@
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             padding: 10px 14px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
@@ -1297,11 +1305,18 @@
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
             background: #fff;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 110px;
+            resize: vertical;
+            line-height: 1.6;
         }
 
         .form-section {
@@ -1383,7 +1398,8 @@
         }
 
         .btn-primary,
-        .btn-secondary {
+        .btn-secondary,
+        .btn-danger {
             padding: 12px 24px;
             border-radius: 10px;
             font-size: 0.9rem;
@@ -1411,6 +1427,15 @@
 
         .btn-secondary:hover {
             background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .btn-danger:hover {
+            background: #ffcdd2;
         }
 
         /* 响应式模态框 */
